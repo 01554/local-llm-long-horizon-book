@@ -1,0 +1,49 @@
+description = "Execute spec task implementation (without TDD — tests already written)"
+prompt = """
+<meta>
+description: Execute spec task implementation based on approved specifications and existing tests
+argument-hint: <feature-name:$1> [task-number:$2]
+arguments: {{args}}
+</meta>
+
+# Implementation Task Executor
+
+<instructions>
+## Core Task
+Implement task **$2** of feature **$1** to make the existing tests pass.
+
+## Execution Steps
+
+### Step 1: Load Context
+Read all necessary context:
+- `.kiro/specs/$1/spec.json`, `requirements.md`, `design.md`, `tasks.md`
+- Existing test files for this task
+- Existing source files in the project
+
+### Step 2: Implement
+Based on the task description, requirements, design, and existing tests:
+- Write implementation code in `src/` directory, in the file specified by the task (e.g., task says "(models.ts)" → create `src/models.ts`)
+- Make all existing tests for this task pass
+- Ensure no regressions in other tests
+
+### Step 3: Verify
+- Run `node --experimental-strip-types test_task$2.ts` to execute the tests
+- If any test FAILs, go back to Step 2 and fix the implementation
+- Do NOT modify the test file — only fix the implementation
+- Do NOT update tasks.md checkboxes — the automation script handles task completion tracking
+
+## Critical Constraints
+- **ONLY modify the file specified in the task** — for example, if the task says "(models.ts)", you may ONLY create or edit `src/models.ts`. Do NOT create or modify any other `.ts` files. Do NOT create `package.json`, `tsconfig.json`, or any config files.
+- **Implement only what the task requires** — do not implement other tasks
+- **Design Alignment**: Implementation must follow design.md specifications
+- **No Regressions**: Existing tests must continue to pass
+- **Test file location**: Tests already exist — do NOT rewrite them
+- **No external dependencies**: Use only Node.js built-in modules. Do NOT run `npm install`
+- **Import paths**: Use ESM imports with `.js` extension (e.g., `import { Field } from './field.js'`). This is required for Node.js ESM with --experimental-strip-types. The actual files are `.ts` but imports must use `.js`.
+</instructions>
+
+## Output
+Brief summary: what was implemented and test results.
+
+arguments: {{args}}
+"""

@@ -1,0 +1,100 @@
+description = "Validate milestone integration tests for quality and correctness"
+prompt = """
+<meta>
+description: Validate milestone integration tests for quality and correctness
+argument-hint: <feature-name:$1> [milestone-number:$2]
+arguments: {{args}}
+</meta>
+
+# Milestone Integration Test Validation
+
+<instructions>
+## Core Task
+Validate the quality and correctness of milestone **$2** integration tests for feature **$1**.
+You are reviewing work done by another model — verify it meets the standards below.
+
+## Execution Steps
+
+### 1. Load Context
+Read:
+- `.kiro/specs/$1/requirements.md` — requirements being tested
+- `.kiro/specs/$1/design.md` — design spec (especially Section 6.3 assembly code)
+- `.kiro/specs/$1/tasks.md` — which tasks are covered by this milestone
+- `test_milestone_$2.py` — the integration test file to validate
+- All `src/*.py` files referenced by the test
+
+### 2. Validate Test Quality
+
+Check each of the following:
+
+#### No Mocks / No Fakes
+- Every object in the test MUST be a real instance imported from `src/`.
+- If ANY mock, stub, fake, or manually re-implemented class is found, this is **NO-GO**.
+- Inline re-definitions of classes that exist in `src/` are also forbidden.
+
+#### Assembly Code Compliance
+- Object construction MUST match design.md Section 6.3 exactly.
+- Constructor arguments must be in the correct order with correct types.
+- Example: `Player(FIELD_WIDTH, FIELD_HEIGHT)` is correct. `Player(field)` is wrong.
+
+#### Cross-Component Testing
+- Tests must verify **interactions between components**, not just individual methods.
+- At minimum, each test should involve 2+ components working together.
+- Single-component unit tests do NOT count as integration tests.
+
+#### Coverage Adequacy
+- For Milestone 1 (after Task 4): Field + Player + ScoreManager interactions
+- For Milestone 2 (after Task 11): Bullet lifecycle (fire → move → reflect → hit → split → score)
+- For Milestone 3 (after Task 15): Full game tick flow (input → move → fire → collisions → score → game over)
+- If a major interaction path is untested, flag it.
+
+#### Test Execution Results
+- Test results are provided in the prompt as pre-run output. Do NOT run tests yourself.
+- If any test shows FAIL or non-zero exit code, this is **NO-GO**.
+- If test output is not provided, flag as "Test results not available".
+
+#### Regression Safety
+- Check that the test file does NOT modify any `test_task*.py` files.
+- Check that `src/` modifications (if any) are compatible with existing task tests.
+
+#### Untested Code Path Review
+テスト環境の制約により実行できないコードパスを特定し、そのコードを直接読んで設計通りに動作するか確認せよ。テストが通っていても、テストされていないコードにバグがある可能性がある。
+
+以下は典型的なテスト不能領域の例:
+- **CLI/ターミナル**: stdin の raw mode 処理、stdout への画面描画、ANSI エスケープ、キー入力ハンドリング、エントリポイント（main() が正しく呼ばれるか）
+- **DB接続**: コネクションプール初期化、トランザクションのロールバック、マイグレーション実行
+- **ネットワーク**: ソケット接続、TLS ハンドシェイク、タイムアウト処理、リトライロジック
+- **ファイルシステム**: パーミッション変更、シンボリックリンク、ディスクフル時の挙動
+- **プロセス管理**: シグナルハンドリング（SIGINT, SIGTERM）、graceful shutdown、子プロセスの fork/exec
+
+これらの領域でコードが存在するのにテストがない場合、コードレビューで問題がないか確認し、問題があれば NO-GO の issue に含めること。
+
+### 3. Generate Verdict
+
+Provide:
+- Summary of what was validated
+- List of issues found (if any)
+- GO/NO-GO decision
+
+## Important Constraints
+- **You are a reviewer, not an implementer.** Do NOT modify any files.
+- **No intermediate verdicts.** GO or NO-GO only. "GO with fixes" is NOT allowed.
+- **Strictness on mocks**: Any form of mock/stub/fake is an automatic NO-GO.
+- **Strictness on assembly**: Wrong constructor args is an automatic NO-GO.
+</instructions>
+
+## Output Format (MANDATORY)
+
+Your response MUST end with a single JSON line as the very last line of your output.
+Do NOT wrap it in markdown code blocks. Do NOT add any text after it.
+
+If all checks pass:
+{"verdict":"GO"}
+
+If any issue is found:
+{"verdict":"NO-GO","issues":["issue 1 description","issue 2 description"]}
+
+You may include analysis text BEFORE this JSON line, but the last line MUST be the JSON verdict.
+
+arguments: {{args}}
+"""

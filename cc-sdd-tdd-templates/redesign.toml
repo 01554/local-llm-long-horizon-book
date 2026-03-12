@@ -1,0 +1,102 @@
+description = "Redesign a failed task by splitting it into smaller subtasks"
+prompt = """
+<meta>
+description: Redesign a task that repeatedly failed by splitting it into smaller, more manageable subtasks
+argument-hint: <feature-name:$1> <task-number:$2> [failure-reason:$3]
+arguments: {{args}}
+</meta>
+
+# Task Redesign (Self-Improvement)
+
+<background_information>
+- **Mission**: A task has failed repeatedly despite multiple attempts. The task is too complex for the implementing model. Break it down into smaller subtasks that the model can handle one at a time.
+- **Trigger**: Called automatically when a task exhausts all retry and restart attempts.
+- **Goal**: Rewrite the failed task in tasks.md as 2-4 smaller subtasks, each targeting the same file but covering a subset of the original functionality.
+</background_information>
+
+<instructions>
+## Core Task
+Task **$2** of feature **$1** has failed repeatedly. Analyze why it's too complex and split it into smaller subtasks.
+
+## Failure Context
+$3
+
+## Execution Steps
+
+### Step 1: Load Context
+Read all necessary context:
+- `.kiro/specs/$1/requirements.md`
+- `.kiro/specs/$1/design.md`
+- `.kiro/specs/$1/tasks.md`
+- The failed test file `test_task$2.py` (to understand what was expected)
+- Any existing source file referenced by the task
+
+### Step 2: Analyze Failure
+Determine why the task is too hard:
+- **Too many responsibilities**: e.g., tick() + auto-fire + game-over in one task
+- **Test file too large**: Tests exceed 500 lines, causing context overflow
+- **Complex interactions**: Task requires understanding multiple components simultaneously
+- **Ambiguous spec**: Design doesn't provide enough detail for the specific logic
+
+### Step 3: Split the Task
+Replace the failed task entry in `tasks.md` with 2-4 subtasks:
+- Use numbering like `14a`, `14b`, `14c` (letter suffixes)
+- Each subtask targets the **same source file** as the original
+- Each subtask should be independently testable
+- Order subtasks so earlier ones don't depend on later ones
+- Each subtask should be completable in a single test file under 300 lines
+
+**Example split for a GameController task (Task 14 → game_controller.py):**
+
+In tasks.md, replace the original `- [ ] Task 14: ...` line with:
+```
+- [ ] Task 14a: GameController 基本構造 (game_controller.py)
+  - GameController クラスの基本構造
+  - コンストラクタ（依存性注入）
+  - getState() メソッド
+
+- [ ] Task 14b: tick() 移動と弾処理 (game_controller.py)
+  - tick() メソッドの実装
+  - 弾の移動・反射・衝突処理の呼び出し順序
+
+- [ ] Task 14c: 連射管理とスペースキー (game_controller.py)
+  - スペースキー押下状態の管理
+  - 3ターン間隔の自動発射ロジック
+
+- [ ] Task 14d: ゲームオーバーとリセット (game_controller.py)
+  - isGameOver() 判定
+  - reset() メソッド
+```
+
+**IMPORTANT**: Each subtask line MUST follow this exact format:
+`- [ ] Task {N}{letter}: {title} ({filename})`
+where `{N}` is the original task number and `{letter}` is a/b/c/d.
+
+### Step 4: Update design.md if needed
+If the failure was caused by ambiguous design, add clarifying details:
+- Specific method signatures with parameter types
+- Processing order as numbered steps
+- Edge case handling rules
+- State transition rules
+
+### Step 5: Clean up
+- Delete the old test file `test_task$2.py` if it exists (it will be regenerated for each subtask)
+- Do NOT delete source files — subtasks build on each other incrementally
+
+## Critical Constraints
+- **Same file**: All subtasks must target the same source file as the original task
+- **Incremental**: Each subtask adds to the previous one (not a rewrite)
+- **No implementation**: Do NOT write any source code — only modify tasks.md and optionally design.md
+- **Preserve numbering**: Do NOT renumber other tasks. Only replace the failed task entry
+- **Keep requirements coverage**: Ensure all requirements covered by the original task are still covered by the subtasks
+
+## Output Format
+Report:
+1. Analysis of why the task failed
+2. The new subtask breakdown
+3. Any design.md changes made
+4. Updated requirements coverage mapping
+</instructions>
+
+arguments: {{args}}
+"""

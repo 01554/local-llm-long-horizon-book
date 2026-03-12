@@ -1,0 +1,128 @@
+description = "Validate implementation against requirements, design, and tasks"
+prompt = """
+<meta>
+description: Validate implementation against requirements, design, and tasks
+argument-hint: [feature-name:$1] [task-numbers:$2]
+arguments: {{args}}
+</meta>
+
+# Implementation Validation
+
+<background_information>
+- **Mission**: Verify that implementation aligns with approved requirements, design, and tasks
+- **Success Criteria**:
+  - All specified tasks marked as completed
+  - Tests exist and pass for implemented functionality
+  - Requirements traceability confirmed (EARS requirements covered)
+  - Design structure reflected in implementation
+  - No regressions in existing functionality
+</background_information>
+
+<instructions>
+## Core Task
+Validate implementation for feature(s) and task(s) based on approved specifications.
+
+## Execution Steps
+
+### 1. Detect Validation Target
+
+**If no arguments provided** (`$1` empty):
+- Parse conversation history for `/kiro:spec-impl <feature> [tasks]` commands
+- Extract feature names and task numbers from each execution
+- Aggregate all implemented tasks by feature
+- Report detected implementations (e.g., "user-auth: 1.1, 1.2, 1.3")
+- If no history found, scan `.kiro/specs/` for features with completed tasks `[x]`
+
+**If feature provided** (`$1` present, `$2` empty):
+- Use specified feature
+- Detect all completed tasks `[x]` in `.kiro/specs/$1/tasks.md`
+
+**If both feature and tasks provided** (`$1` and `$2` present):
+- Validate specified feature and tasks only (e.g., `user-auth 1.1,1.2`)
+
+### 2. Load Context
+
+For each detected feature:
+- Read `.kiro/specs/<feature>/spec.json` for metadata
+- Read `.kiro/specs/<feature>/requirements.md` for requirements
+- Read `.kiro/specs/<feature>/design.md` for design structure
+- Read `.kiro/specs/<feature>/tasks.md` for task list
+- **Load ALL steering context**: Read entire `.kiro/steering/` directory including:
+  - Default files: `structure.md`, `tech.md`, `product.md`
+  - All custom steering files (regardless of mode settings)
+
+### 3. Execute Validation
+
+For each task, verify:
+
+#### Task Completion Check
+- **SKIP this check.** Checkbox updates are handled by the automation script after validation passes. Do NOT flag unchecked boxes as an issue.
+
+#### Test Coverage Check
+- Tests exist for task-related functionality
+- Test results are provided in the prompt as "Test Execution Results" — do NOT run tests yourself
+- If test results show FAIL or non-zero exit code, flag as "Test failure"
+- If no test results are provided, check only that the test file exists
+
+#### Requirements Traceability
+- Identify EARS requirements related to the task
+- Use Grep to search implementation for evidence of requirement coverage
+- If requirement not traceable to code, flag as "Requirement not implemented"
+
+#### Design Alignment
+- Check if design.md structure is reflected in implementation
+- Verify key classes, methods, and modules exist
+- Use Grep/LS to confirm file structure matches design
+- If misalignment found, flag as "Design deviation"
+
+#### Regression Check
+- Regression testing is handled by the automation script AFTER your validation.
+- Do NOT run tests yourself. Focus on code review and design alignment.
+- If test results are provided in the prompt, evaluate them. Otherwise skip this check.
+
+#### File Scope Check
+- Check tasks.md to find the target file for task $2 (shown in parentheses, e.g., "Task 3: フィールド管理 (field.ts)").
+- The ONLY files that should have been created or modified are: (a) `src/<target-file>` as specified in tasks.md, and (b) `test_task$2.ts`.
+- If any OTHER file was created or modified (e.g., other test files, other src files, config files), this is **NO-GO**.
+- Use `ls` or `Glob` to verify no unexpected files exist.
+
+
+### 4. Generate Report
+
+Provide summary in the language specified in spec.json:
+- Validation summary by feature
+- Coverage report (tasks, requirements, design)
+- Issues and deviations with severity (Critical/Warning)
+- GO/NO-GO decision
+
+## Important Constraints
+- **Scope**: When a specific task number is provided (e.g., task 1), validate ONLY that task. Do NOT check other tasks' completion status. Do NOT flag files that don't exist yet — they belong to future tasks.
+- **Incremental**: This project is built incrementally, one task at a time. Only the files and functionality specified in the current task should be evaluated.
+- **Non-blocking warnings**: Design deviations are warnings unless critical
+- **Test-first focus**: Test coverage for the CURRENT task is mandatory for GO decision
+- **No external deps**: This project uses NO external libraries. Tests use only Node.js built-in `assert` module or manual PASS/FAIL checks. Do NOT flag missing npm packages or test frameworks.
+- There is NO intermediate verdict. Do NOT use "GO with fixes", "Conditional GO", or similar. If anything needs changing, it is **NO-GO**.
+</instructions>
+
+## Tool Guidance
+- **Conversation parsing**: Extract `/kiro:spec-impl` patterns from history
+- **Read context**: Load all specs and steering before validation
+- **Bash for tests**: Execute test commands to verify pass status
+- **Grep for traceability**: Search codebase for requirement evidence
+- **LS/Glob for structure**: Verify file structure matches design
+
+## Output Format (MANDATORY)
+
+Your response MUST end with a single JSON line as the very last line of your output.
+Do NOT wrap it in markdown code blocks. Do NOT add any text after it.
+
+If all checks pass:
+{"verdict":"GO"}
+
+If any issue is found:
+{"verdict":"NO-GO","issues":["issue 1 description","issue 2 description"]}
+
+You may include analysis text BEFORE this JSON line, but the last line MUST be the JSON verdict.
+
+arguments: {{args}}
+"""

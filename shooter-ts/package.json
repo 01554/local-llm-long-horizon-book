@@ -1,0 +1,1 @@
+{"name":"reflect-shooter","version":"1.0.0","type":"module","exports":{"./src/models.js":"./src/models.ts"},"devDependencies":{"@types/node":"^25.4.0","typescript":"^5.9.3"}}

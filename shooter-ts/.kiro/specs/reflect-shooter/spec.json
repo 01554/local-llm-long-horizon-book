@@ -1,0 +1,1 @@
+{"feature": "reflect-shooter", "language": "ja", "description": "反射分裂シューティング — ターン制 CLI ゲーム", "tech": "TypeScript (Node.js)", "status": "tasks-generated", "approvals": {"requirements": {"generated": true, "approved": true}, "design": {"generated": true, "approved": true}, "tasks": {"generated": true, "approved": true}}, "updated_at": "2026-03-10T01:00:00Z"}

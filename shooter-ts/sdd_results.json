@@ -1,0 +1,244 @@
+[
+  {
+    "task": "5",
+    "title": "弾の発射・移動・壁反射 (bullet_manager.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 1,
+    "impl_attempts": 1,
+    "issues_history": [],
+    "duration_sec": 255.1
+  },
+  {
+    "task": "6",
+    "title": "弾-的衝突と分裂 (bullet_combat.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 2,
+    "impl_attempts": 1,
+    "issues_history": [
+      {
+        "phase": "tdd",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "Bullet is imported as a type but should be imported as a value (it's defined as a class in models.ts, not an interface)",
+          "Test defines inline BulletCombat mock instead of importing from actual module './src/bullet_combat.js' - tests won't validate real implementation when it exists",
+          "Test 9 doesn't properly verify reflectionCount=0 for split bullets due to mock limitations (fireBullet stores plain objects without reflectionCount property)",
+          "Mock classes don't match the actual design interfaces (EnemyManager, ScoreManager should be imported from their respective modules)"
+        ]
+      }
+    ],
+    "duration_sec": 1081.4
+  },
+  {
+    "task": "7",
+    "title": "弾-弾衝突・合体・被弾判定 (bullet_combat.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 5,
+    "impl_attempts": 1,
+    "issues_history": [
+      {
+        "phase": "tdd",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "handleBulletCollisions method is missing",
+          "mergeBullets method is missing",
+          "checkPlayerHit method is missing"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 2,
+        "restart": 0,
+        "issues": [
+          "Design alignment: checkPlayerHit signature mismatch - design.md specifies checkPlayerHit(bullets, player: Player) but tests call it with separate coordinates (playerX, playerY)",
+          "Requirement coverage: Test 'checkPlayerHit: downward bullet near player position returns false' has incorrect expectation per Req 2.3 - a downward bullet at x=40 with player occupying cells 37-41 should trigger game over (within player width), not return false"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 3,
+        "restart": 0,
+        "issues": [
+          "checkPlayerHit method signature mismatch: test passes (playerX, playerY) coordinates but design.md specifies Player object parameter",
+          "test expects player width collision checking which requires Player object to access width property"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 4,
+        "restart": 0,
+        "issues": [
+          "checkPlayerHit method signature mismatch: test passes MockPlayer object as second argument but implementation expects two separate number parameters (playerX, playerY)",
+          "Test creates unused MockPlayer methods (getPosition, getWidth, collidesWith) that don't align with the actual checkPlayerHit implementation which uses primitive coordinates"
+        ]
+      }
+    ],
+    "duration_sec": 1538.2
+  },
+  {
+    "task": "8",
+    "title": "的管理 (enemy_manager.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 1,
+    "impl_attempts": 1,
+    "issues_history": [],
+    "duration_sec": 285.5
+  },
+  {
+    "task": "9",
+    "title": "ゲーム進行制御 (game_controller.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 5,
+    "impl_attempts": 1,
+    "issues_history": [
+      {
+        "phase": "tdd",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "Using MockGameController instead of actual GameController implementation",
+          "Incorrect tick() method call order - operates on bullets array before moveBullets()",
+          "checkPlayerHit called with wrong arguments (2 args vs expected 1)",
+          "BulletCombat.rng property not accessible for test override",
+          "Test 10 uses incorrect assertion format (strictEqual vs ok)",
+          "Test 12 incomplete verification logic doesn't actually verify merging",
+          "Test 13 relies on timing without guarantee of bullet reaching player",
+          "Test 17 only checks reflection count stays at 0, doesn't verify increment"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 2,
+        "restart": 0,
+        "issues": [
+          "Missing GameController import and usage - test file never creates or tests the GameController class itself",
+          "No actual GameController instantiation - tests should create new GameController(field, player, bulletManager, enemyManager, scoreManager)",
+          "Tests 6,10,11,12,14 verify BulletManager/BulletCombat behavior instead of GameController.tick()",
+          "checkPlayerHit has incorrect signature in Test 13"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 3,
+        "restart": 0,
+        "issues": [
+          "Test 6 - Bullet firing verification is weak",
+          "Test 10 - Doesn't account for bullet splitting (Req 4.1)",
+          "Test 12 - Merge assertion is too strict",
+          "Test 17 - Reflection verification is weak",
+          "Missing Test for handleInput(\"restart\")",
+          "Test 18 - Tests player.reset() instead of GameController.reset()"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 4,
+        "restart": 0,
+        "issues": [
+          "Tests 6, 10, 11, 12, 14 bypass controller.tick() and directly call BulletManager methods instead of testing the full tick flow as required by design.",
+          "Test 18 tests reset() directly instead of through handleInput('restart') as specified in requirements.",
+          "Test 13 uses convoluted loop logic that doesn't properly test game over detection through tick().",
+          "Test 17 has weak assertion using OR condition that can pass without verifying reflection behavior.",
+          "Most 'tick()' tests don't actually verify GameController.tick() implementation—they only test BulletManager methods in isolation."
+        ]
+      }
+    ],
+    "duration_sec": 3719.4
+  },
+  {
+    "task": "10",
+    "title": "画面描画 (renderer.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 4,
+    "impl_attempts": 2,
+    "issues_history": [
+      {
+        "phase": "tdd",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "Test defines inline MockRenderer instead of importing from './src/renderer.js' module",
+          "Wall character format in test ('+-' + '-'.repeat(71) + '+') does not match design specification",
+          "Cannot verify actual Renderer class implementation contract when using mock"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 2,
+        "restart": 0,
+        "issues": [
+          "検証結果テキストが提供されていません。最終判定（verdict）を含む完全なテスト結果を提供してください。"
+        ]
+      },
+      {
+        "phase": "tdd",
+        "attempt": 3,
+        "restart": 0,
+        "issues": [
+          "Missing GameState interface/type definition - test imports from renderer.js but no GameState defined in models.ts or elsewhere",
+          "Missing Enemy interface/type definition - test uses enemy objects with {id, x, y} but no Enemy interface exists",
+          "Test imports Renderer class from ./src/renderer.js which does not exist yet (expected for TDD Red Phase, but test cannot run without implementation)",
+          "Import statement 'import { GameState, Renderer } from './src/renderer.js'' references non-existent exports"
+        ]
+      },
+      {
+        "phase": "impl",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "Renderer produces one extra field row (y=25) outside playable area",
+          "Line index mismatch: SCORE/TURN/ENEMIES at frame[28] instead of expected frame[27]",
+          "Test expectation inconsistency: Test 10 expects 30 lines but design specifies 29 lines"
+        ]
+      },
+      {
+        "phase": "regression",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "test_task5.ts: file:///workspace/microgptts-benchmark/sdd_shooter_35b_typescript_v2/src/bullet_manager.ts:1\nimport { Bullet, DIRECTION_DELTA, OPPOSITE_DIRECTION, MAX_REFLECTION_COUNT } from './models.js';\n         ^^^^^^\nSyntaxError: The requested module './models.js' does not provide an export named 'Bullet'\n    ",
+          "test_task6.ts: file:///workspace/microgptts-benchmark/sdd_shooter_35b_typescript_v2/src/bullet_manager.ts:1\nimport { Bullet, DIRECTION_DELTA, OPPOSITE_DIRECTION, MAX_REFLECTION_COUNT } from './models.js';\n         ^^^^^^\nSyntaxError: The requested module './models.js' does not provide an export named 'Bullet'\n    ",
+          "test_task7.ts: file:///workspace/microgptts-benchmark/sdd_shooter_35b_typescript_v2/test_task7.ts:105\nimport { Bullet } from './src/models.js';\n         ^^^^^^\nSyntaxError: The requested module './src/models.js' does not provide an export named 'Bullet'\n    at ModuleJob._instantiate (node:internal/modules/esm/modu",
+          "test_task9.ts: file:///workspace/microgptts-benchmark/sdd_shooter_35b_typescript_v2/src/bullet_manager.ts:1\nimport { Bullet, DIRECTION_DELTA, OPPOSITE_DIRECTION, MAX_REFLECTION_COUNT } from './models.js';\n         ^^^^^^\nSyntaxError: The requested module './models.js' does not provide an export named 'Bullet'\n    "
+        ]
+      }
+    ],
+    "duration_sec": 2619.4
+  },
+  {
+    "task": "11",
+    "title": "キー入力処理 (input_handler.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 1,
+    "impl_attempts": 1,
+    "issues_history": [],
+    "duration_sec": 558.4
+  },
+  {
+    "task": "12",
+    "title": "エントリーポイント (index.ts)",
+    "status": "PASSED",
+    "restarts": 0,
+    "tdd_attempts": 2,
+    "impl_attempts": 1,
+    "issues_history": [
+      {
+        "phase": "tdd",
+        "attempt": 1,
+        "restart": 0,
+        "issues": [
+          "Import paths use .ts extension instead of .js extension (violates design.md section 6 ESM import path rules)"
+        ]
+      }
+    ],
+    "duration_sec": 699.9
+  }
+]

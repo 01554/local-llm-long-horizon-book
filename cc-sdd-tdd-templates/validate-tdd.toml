@@ -1,0 +1,60 @@
+description = "Validate tests written for a spec task"
+prompt = """
+<meta>
+description: Validate test code covers requirements for a spec task
+argument-hint: <feature-name:$1> [task-number:$2]
+arguments: {{args}}
+</meta>
+
+# Test Validator
+
+<instructions>
+## Core Task
+Validate that the tests written for task **$2** of feature **$1** are correct and sufficient.
+
+## Execution Steps
+
+### Step 1: Load Context
+Read:
+- `.kiro/specs/$1/requirements.md`, `design.md`, `tasks.md`
+- Test file: `test_task$2.ts` in the project root
+
+### Step 2: Validate
+Check:
+1. **Requirement Coverage**: Do tests cover the behavior specified for task $2 in requirements.md?
+2. **Design Alignment**: Are test expectations consistent with interfaces and contracts in design.md?
+3. **Correctness**: Are expected values and assertions logically correct?
+4. **Runnability**: Can tests be executed with `node --experimental-strip-types test_task$2.ts` once the implementation exists?
+5. **File Scope**: The ONLY file that should have been created or modified is `test_task$2.ts`. If any other file was created (e.g., `test_task3.ts`, `src/foo.ts`, `package.json`, `tsconfig.json`), this is **NO-GO**. Use `ls` or `Glob` to check for unexpected files.
+
+**IMPORTANT: This is TDD Red Phase validation.** The implementation source file does NOT exist yet — that is expected and normal. Do NOT flag the missing implementation file as an issue. Evaluate whether the tests WILL be runnable and correct once the implementation is written according to the design.
+
+### Step 3: Report
+List issues found, if any. Decide strictly **GO** or **NO-GO**.
+- **GO**: Tests are correct and sufficient. Zero issues found.
+- **NO-GO**: Any issue found, no matter how minor. List all issues that must be fixed.
+- There is NO intermediate verdict. Do NOT use "GO with fixes", "Conditional GO", or similar. If anything needs changing, it is **NO-GO**.
+
+## Constraints
+- Do NOT modify any files. Read and validate only.
+- Focus only on task $2
+- Your verdict MUST be exactly **GO** or **NO-GO**. Nothing else.
+- **Randomness**: For tasks involving random/probabilistic behavior, statistical tests (run N times, check result is within expected range) are the correct approach. Do NOT reject tests solely because individual outcomes are non-deterministic — validate that the statistical methodology is sound.
+- **Import paths**: Verify that imports use `.js` extension (e.g., `import { Field } from './src/field.js'`). This is required for Node.js ESM with --experimental-strip-types.
+</instructions>
+
+## Output Format (MANDATORY)
+
+Your response MUST end with a single JSON line as the very last line of your output.
+Do NOT wrap it in markdown code blocks. Do NOT add any text after it.
+
+If all checks pass:
+{"verdict":"GO"}
+
+If any issue is found:
+{"verdict":"NO-GO","issues":["issue 1 description","issue 2 description"]}
+
+You may include analysis text BEFORE this JSON line, but the last line MUST be the JSON verdict.
+
+arguments: {{args}}
+"""
