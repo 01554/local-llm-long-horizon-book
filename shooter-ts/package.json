@@ -1,1 +1,16 @@
-{"name":"reflect-shooter","version":"1.0.0","type":"module","exports":{"./src/models.js":"./src/models.ts"},"devDependencies":{"@types/node":"^25.4.0","typescript":"^5.9.3"}}
+{
+  "name": "reflect-shooter",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./src/models.js": "./src/models.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  }
+}
